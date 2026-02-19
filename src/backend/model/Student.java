@@ -1,35 +1,95 @@
 package backend.model;
 
 public class Student {
-    private String id;
-    private String name;
-    private String email;
-    private String department;
 
+    // personal details
+    private int id; // auto generated
+    private String FirstName;
+    private String LastName;
+    private String email;
+    private String phone;
+    private String department;
+    private int level;
+    private int term;
+
+    // student status--Role and Status is defined in Role.java and Status.java
+    // respectively
+    private Role role;
+    private Status status;
+    private String password;
+
+    // ---------constructor--------------
     public Student() {
+        this.id = 0;
+        this.FirstName = "";
+        this.LastName = "";
+        this.phone = "";
+        this.email = "";
+        this.password = "";
+        this.department = "";
+        this.level = 0;
+        this.term = 0;
+        this.role = Role.STUDENT; // default role
+        this.status = Status.PENDING; // default status
     }
 
-    public Student(String id, String name, String email, String department) {
+    public Student(String id, String FirstName, String LastName, String phone, String email,
+            String department, int level, int term) {
+
         this.id = id;
-        this.name = name;
+        this.FirstName = FirstName;
+        this.LastName = LastName;
+        this.phone = phone;
         this.email = email;
         this.department = department;
+        this.level = level;
+        this.term = term;
+
+        this.role = Role.STUDENT; // default role
+        this.status = Status.PENDING; // default status
+
     }
 
-    public String getId() {
+    public Student(String id, String FirstName, String LastName, String phone, String email,
+            String department, int level, int term, Status status) {
+
+        this.id = id;
+        this.FirstName = FirstName;
+        this.LastName = LastName;
+        this.phone = phone;
+        this.email = email;
+        this.department = department;
+        this.level = level;
+        this.term = term;
+
+        this.role = Role.STUDENT; // default role
+        this.status = status;
+
+    }
+
+    // ---------getter/setter--------------------
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return FirstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String FirstName) {
+        this.FirstName = FirstName;
+    }
+
+    public String getLastName() {
+        return LastName;
+    }
+
+    public void setLastName(String LastName) {
+        this.LastName = LastName;
     }
 
     public String getEmail() {
@@ -40,6 +100,14 @@ public class Student {
         this.email = email;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public String getDepartment() {
         return department;
     }
@@ -48,8 +116,39 @@ public class Student {
         this.department = department;
     }
 
-    @Override
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+
+    }
+
+    public int getTerm() {
+        return term;
+    }
+
+    public void setTerm(int term) {
+        this.term = term;
+    }
+
+    // ---------Password Encryption------------------
+    // Do not modify this method
+    public void setPassword(String newPass) {
+        String hashedPassword = PasswordUtil.hashPassword(newPass);
+        this.password = hashedPassword;
+
+    }
+
+    public String getPassword() {
+        return password; // hashed password
+    }
+
+    // ----------Debugging utility--------------------
+    @Override // only for debugging perpose
     public String toString() {
         return "Student{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", department='" + department + '\'' + '}';
     }
+
 }
