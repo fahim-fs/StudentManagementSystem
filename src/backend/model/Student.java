@@ -133,6 +133,26 @@ public class Student {
         this.term = term;
     }
 
+
+    public getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(Status status)
+    {
+        this.status = status;
+    }
+
+    //---------other utility methods---------------
+
+    
+
+
+
+
+
+
     // ---------Password Encryption------------------
     // Do not modify this method
     public void setPassword(String newPass) {
