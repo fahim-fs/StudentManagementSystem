@@ -104,7 +104,6 @@ public class RegisterController implements Initializable {
         if (!password.getText().equals(confirm_password.getText())) {
                                              showError("Passwords do not match.");         return; }
 
-        // ── সব data User object এ pack করা (intermediate class) ───────────────
         String gender = g_male.isSelected() ? "Male" : "Female";
 
         User newUser = new User(
@@ -119,10 +118,9 @@ public class RegisterController implements Initializable {
                 session.getText().trim(),
                 department.getValue(),
                 username.getText().trim(),
-                password.getText()          // UserService এ গিয়ে hash হবে
+                password.getText()
         );
 
-        // ── Backend এ পাঠানো UserService এর মাধ্যমে ──────────────────────────
         boolean success = UserService.register(newUser);
 
         if (success) {

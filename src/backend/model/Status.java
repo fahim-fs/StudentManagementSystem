@@ -1,6 +1,8 @@
 package backend.model;
 
-public enum Status{
+public enum Status {
     PENDING,
     APPROVED,
+    REJECTED,
+    SUSPENDED
 }

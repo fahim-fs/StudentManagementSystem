@@ -1,5 +1,6 @@
 package com.youruniversity.sms;
 
+import backend.database.DatabaseConnection;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,20 +11,21 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Login page দিয়ে শুরু করতে চাইলে:
+
         Parent root = FXMLLoader.load(
                 getClass().getResource("/frontend/view/login.fxml")
         );
-
-        // Registration page দিয়ে শুরু করতে চাইলে:
-        // Parent root = FXMLLoader.load(
-        //     getClass().getResource("/frontend/view/registerForm.fxml")
-        // );
 
         primaryStage.setTitle("Student Management System");
         primaryStage.setScene(new Scene(root));
         primaryStage.setResizable(false);
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        DatabaseConnection.closeConnection();
+        super.stop();
     }
 
     public static void main(String[] args) {

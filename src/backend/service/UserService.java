@@ -1,43 +1,36 @@
 package backend.service;
 
+import backend.dao.StudentDAO;
+import backend.model.Student;
+import backend.util.PasswordUtil;
 import common.User;
 
-/**
- * UserService — Backend partner এই class implement করবে।
- * RegisterController শুধু register() call করে একটা User object দিয়ে।
- */
 public class UserService {
 
-    /**
-     * নতুন user database এ save করে।
-     * @param user  RegisterController থেকে আসা populated User object
-     * @return true if registration successful, false otherwise
-     */
-    public static boolean register(User user) {
-        // TODO (backend partner):
-        //  1. user.getPassword() কে BCrypt দিয়ে hash করো
-        //  2. Username already exists কিনা check করো
-        //  3. Database এ INSERT করো (JDBC / Hibernate / যেটা ব্যবহার করছো)
-        //  4. Success হলে true, failure তে false return করো
+    private static final StudentDAO studentDAO = new StudentDAO();
 
-        System.out.println("UserService.register() called for: " + user);
-        return true; // placeholder
+    public static boolean register(User user) {
+        Student student = new Student();
+        student.setFirstName(user.getFirstName());
+        student.setLastName(user.getLastName());
+        student.setFatherName(user.getFatherName());
+        student.setMotherName(user.getMotherName());
+        student.setDateOfBirth(user.getDateOfBirth());
+        student.setPhone(user.getPhoneNumber());
+        student.setAddress(user.getAddress());
+        student.setGender(user.getGender());
+        student.setSession(user.getSession());
+        student.setDepartment(user.getDepartment());
+        student.setUsername(user.getUsername());
+        student.setPassword(user.getPassword());
+
+        return studentDAO.insertStudent(student);
     }
 
-    /**
-     * Username ও password দিয়ে user authenticate করে।
-     * @param username  Login form থেকে আসা username
-     * @param password  Login form থেকে আসা plain-text password
-     * @return true if credentials are valid, false otherwise
-     */
     public static boolean login(String username, String password) {
-        // TODO (backend partner):
-        //  1. Database থেকে username দিয়ে user খোঁজো
-        //  2. User না পেলে false return করো
-        //  3. BCrypt দিয়ে password verify করো
-        //  4. Match হলে true, না হলে false return করো
-
-        System.out.println("UserService.login() called for username: " + username);
-        return true; // placeholder
+        Student student = studentDAO.getStudentByUsername(username);
+        if (student == null) return false;
+        //if (!student.getStatus().name().equals("APPROVED")) return false;
+        return PasswordUtil.checkPassword(password, student.getPassword());
     }
 }

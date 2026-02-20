@@ -1,73 +1,47 @@
 package backend.model;
 
+import backend.util.PasswordUtil;
+
+import java.time.LocalDate;
+
 public class Student {
 
-    // personal details
-    private int id; // auto generated
-    private String FirstName;
-    private String LastName;
+    private int id;
+    private String firstName;
+    private String lastName;
+    private String fatherName;
+    private String motherName;
     private String email;
     private String phone;
+    private String address;
+    private String gender;
+    private String session;
     private String department;
+    private String username;
     private int level;
     private int term;
-
-    // student status--Role and Status is defined in Role.java and Status.java
-    // respectively
     private Role role;
     private Status status;
     private String password;
+    private java.time.LocalDate dateOfBirth;
 
-    // ---------constructor--------------
+    // ── Constructors ──────────────────────────────────────────────────────────
     public Student() {
         this.id = 0;
-        this.FirstName = "";
-        this.LastName = "";
+        this.firstName = "";
+        this.lastName = "";
         this.phone = "";
         this.email = "";
         this.password = "";
         this.department = "";
         this.level = 0;
         this.term = 0;
-        this.role = Role.STUDENT; // default role
-        this.status = Status.PENDING; // default status
+        this.role = Role.STUDENT;
+        this.status = Status.PENDING;
+        this.dateOfBirth = null;
     }
 
-    public Student(String id, String FirstName, String LastName, String phone, String email,
-            String department, int level, int term) {
-
-        this.id = id;
-        this.FirstName = FirstName;
-        this.LastName = LastName;
-        this.phone = phone;
-        this.email = email;
-        this.department = department;
-        this.level = level;
-        this.term = term;
-
-        this.role = Role.STUDENT; // default role
-        this.status = Status.PENDING; // default status
-
-    }
-
-    public Student(String id, String FirstName, String LastName, String phone, String email,
-            String department, int level, int term, Status status) {
-
-        this.id = id;
-        this.FirstName = FirstName;
-        this.LastName = LastName;
-        this.phone = phone;
-        this.email = email;
-        this.department = department;
-        this.level = level;
-        this.term = term;
-
-        this.role = Role.STUDENT; // default role
-        this.status = status;
-
-    }
-
-    // ---------getter/setter--------------------
+    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int getId() {
         return id;
     }
@@ -77,98 +51,150 @@ public class Student {
     }
 
     public String getFirstName() {
-        return FirstName;
+        return firstName;
     }
 
-    public void setFirstName(String FirstName) {
-        this.FirstName = FirstName;
+    public void setFirstName(String v) {
+        this.firstName = v;
     }
 
     public String getLastName() {
-        return LastName;
+        return lastName;
     }
 
-    public void setLastName(String LastName) {
-        this.LastName = LastName;
+    public void setLastName(String v) {
+        this.lastName = v;
+    }
+
+    public String getFatherName() {
+        return fatherName;
+    }
+
+    public void setFatherName(String v) {
+        this.fatherName = v;
+    }
+
+    public String getMotherName() {
+        return motherName;
+    }
+
+    public void setMotherName(String v) {
+        this.motherName = v;
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setEmail(String v) {
+        this.email = v;
     }
 
     public String getPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setPhone(String v) {
+        this.phone = v;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String v) {
+        this.address = v;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String v) {
+        this.gender = v;
+    }
+
+    public String getSession() {
+        return session;
+    }
+
+    public void setSession(String v) {
+        this.session = v;
     }
 
     public String getDepartment() {
         return department;
     }
 
-    public void setDepartment(String department) {
-        this.department = department;
+    public void setDepartment(String v) {
+        this.department = v;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String v) {
+        this.username = v;
     }
 
     public int getLevel() {
         return level;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
-
+    public void setLevel(int v) {
+        this.level = v;
     }
 
     public int getTerm() {
         return term;
     }
 
-    public void setTerm(int term) {
-        this.term = term;
+    public void setTerm(int v) {
+        this.term = v;
     }
 
+    public Role getRole() {
+        return role;
+    }
 
-    public getStatus()
-    {
+    public void setRole(Role v) {
+        this.role = v;
+    }
+
+    public Status getStatus() {
         return status;
     }
 
-    public void setStatus(Status status)
-    {
-        this.status = status;
+    public void setStatus(Status v) {
+        this.status = v;
     }
 
-    //---------other utility methods---------------
+    // ── Password (hashed) ─────────────────────────────────────────────────────
+    public void setPassword(String plainPassword) {
+        this.password = PasswordUtil.hashPassword(plainPassword);
+    }
 
-    
-
-
-
-
-
-
-    // ---------Password Encryption------------------
-    // Do not modify this method
-    public void setPassword(String newPass) {
-        String hashedPassword = PasswordUtil.hashPassword(newPass);
+    public void setHashedPassword(String hashedPassword) {
         this.password = hashedPassword;
-
     }
 
     public String getPassword() {
-        return password; // hashed password
+        return password;
     }
 
-    // ----------Debugging utility--------------------
-    @Override // only for debugging perpose
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    // ── Debug ─────────────────────────────────────────────────────────────────
+    @Override
     public String toString() {
-        return "Student{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", department='" + department + '\'' + '}';
+        return "Student{id=" + id + ", name='" + firstName + " " + lastName
+                + "', department='" + department + "'}";
     }
-
 }
