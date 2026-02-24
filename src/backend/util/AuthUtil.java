@@ -1,8 +1,10 @@
-package backend.util;
+package backend.dao;
 
 import backend.model.Role;
 import backend.model.Student;
 import backend.dao.StudentDAO;
+import backend.util.PasswordUtil;
+
 
 public class AuthUtil {
 
