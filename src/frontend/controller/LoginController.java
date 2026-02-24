@@ -1,6 +1,9 @@
 package frontend.controller;
 
+import backend.model.Role;
+import backend.model.Student;
 import backend.service.UserService;
+import common.SessionManager;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -43,16 +46,16 @@ public class LoginController implements Initializable {
         String user = username.getText().trim();
         String pass = password.getText();
 
-        // Basic validation
-        if (user.isEmpty()) { showError("Username is required.");  return; }
-        if (pass.isEmpty()) { showError("Password is required.");  return; }
+        if (user.isEmpty()) { showError("Username is required."); return; }
+        if (pass.isEmpty()) { showError("Password is required."); return; }
 
-        // ── Call backend UserService ───────────────────────────────────────────
-        boolean success = UserService.login(user, pass);
+        // Student object পাবো
+        Student student = UserService.login(user, pass);
 
-        if (success) {
+        if (student != null) {
+            SessionManager.setStudent(student); // ← session এ save
             showSuccess("Login successful! Redirecting...");
-            navigateToDashboard(event);
+            navigateByRole(event, student.getRole());
         } else {
             showError("Invalid username or password.");
             password.clear();
@@ -85,7 +88,7 @@ public class LoginController implements Initializable {
     private void navigateToDashboard(ActionEvent event) {
         try {
             Parent root = FXMLLoader.load(
-                    getClass().getResource("/frontend/view/dashboard.fxml"));
+                    getClass().getResource("/frontend/view/StudentDashboard.fxml"));
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
@@ -108,5 +111,23 @@ public class LoginController implements Initializable {
 
     private void clearMessage() {
         messageLabel.setText("");
+    }
+    private void navigateByRole(ActionEvent event, Role role) {
+        String fxmlPath;
+        switch (role) {
+            case STUDENT: fxmlPath = "/frontend/view/StudentDashboard.fxml"; break;
+            case ADMIN:   fxmlPath = "/frontend/view/AdminDashboard.fxml";   break;
+            case FACULTY: fxmlPath = "/frontend/view/FacultyDashboard.fxml"; break;
+            default: showError("Unknown role."); return;
+        }
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource(fxmlPath));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(root, 1100, 720));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("Dashboard load failed: " + e.getMessage());
+        }
     }
 }

@@ -29,6 +29,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        //System.out.println(backend.util.PasswordUtil.hashPassword("12345678"));
         launch(args);
     }
 }

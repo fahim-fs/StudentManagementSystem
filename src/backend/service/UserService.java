@@ -27,10 +27,11 @@ public class UserService {
         return studentDAO.insertStudent(student);
     }
 
-    public static boolean login(String username, String password) {
+    public static Student login(String username, String password) {
         Student student = studentDAO.getStudentByUsername(username);
-        if (student == null) return false;
-        //if (!student.getStatus().name().equals("APPROVED")) return false;
-        return PasswordUtil.checkPassword(password, student.getPassword());
+        if (student == null) return null;
+        if (!student.getStatus().name().equals("APPROVED")) return null;
+        boolean match = PasswordUtil.checkPassword(password, student.getPassword());
+        return match ? student : null;
     }
 }
