@@ -21,10 +21,12 @@
               AnchorPane.topAnchor="0" AnchorPane.bottomAnchor="0"
               AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
 
+            <!-- ══ SIDEBAR ══════════════════════════════════════════════════ -->
             <VBox prefWidth="240.0" prefHeight="720.0" spacing="0"
                   style="-fx-background-color: #1a2e3b;
                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 3, 0);">
 
+                <!-- Student Avatar -->
                 <VBox alignment="CENTER" spacing="6"
                       style="-fx-padding: 28 16 20 16;
                              -fx-background-color: #14242f;">
@@ -45,7 +47,9 @@
                                   -fx-text-fill: #a0b4bf;"/>
                 </VBox>
 
-                <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;"
+                <!-- Nav Menu -->
+                <ScrollPane fitToWidth="true"
+                            style="-fx-background: transparent; -fx-background-color: transparent;"
                             VBox.vgrow="ALWAYS">
                     <content>
                         <VBox spacing="2" style="-fx-padding: 10 8 10 8;">
@@ -54,6 +58,16 @@
                                     onAction="#showHome" maxWidth="Infinity"
                                     style="-fx-background-color: #2a9d8f;
                                            -fx-text-fill: white;
+                                           -fx-font-size: 13px;
+                                           -fx-alignment: CENTER-LEFT;
+                                           -fx-padding: 10 16;
+                                           -fx-background-radius: 8;
+                                           -fx-cursor: hand;"/>
+
+                            <Button fx:id="btnProfile" text="👤   My Profile"
+                                    onAction="#showProfile" maxWidth="Infinity"
+                                    style="-fx-background-color: transparent;
+                                           -fx-text-fill: #cdd9e0;
                                            -fx-font-size: 13px;
                                            -fx-alignment: CENTER-LEFT;
                                            -fx-padding: 10 16;
@@ -80,13 +94,13 @@
                                            -fx-background-radius: 8;
                                            -fx-cursor: hand;"/>
 
-                            <Button fx:id="btnResult" text="    🏆   Result"
+                            <Button fx:id="btnResult" text="🏆   Result"
                                     onAction="#showResult" maxWidth="Infinity"
                                     style="-fx-background-color: transparent;
-                                           -fx-text-fill: #a0b4bf;
-                                           -fx-font-size: 12px;
+                                           -fx-text-fill: #cdd9e0;
+                                           -fx-font-size: 13px;
                                            -fx-alignment: CENTER-LEFT;
-                                           -fx-padding: 8 16 8 30;
+                                           -fx-padding: 10 16;
                                            -fx-background-radius: 8;
                                            -fx-cursor: hand;"/>
 
@@ -122,20 +136,11 @@
                                            -fx-background-radius: 8;
                                            -fx-cursor: hand;"/>
 
-                            <Button fx:id="btnDue" text="💰   Due Amount"
-                                    onAction="#showDueAmount" maxWidth="Infinity"
-                                    style="-fx-background-color: transparent;
-                                           -fx-text-fill: #cdd9e0;
-                                           -fx-font-size: 13px;
-                                           -fx-alignment: CENTER-LEFT;
-                                           -fx-padding: 10 16;
-                                           -fx-background-radius: 8;
-                                           -fx-cursor: hand;"/>
-
                         </VBox>
                     </content>
                 </ScrollPane>
 
+                <!-- Logout -->
                 <VBox style="-fx-padding: 10 8 16 8;">
                     <Separator style="-fx-background-color: #2a3f4f;"/>
                     <Button fx:id="btnLogout" text="🚪   Logout"
@@ -146,14 +151,16 @@
                                    -fx-alignment: CENTER-LEFT;
                                    -fx-padding: 10 16;
                                    -fx-background-radius: 8;
-                                   -fx-cursor: hand;
-                                   -fx-margin: 8 0 0 0;"/>
+                                   -fx-cursor: hand;"/>
                 </VBox>
 
             </VBox>
+            <!-- END SIDEBAR -->
 
+            <!-- ══ MAIN CONTENT ════════════════════════════════════════════ -->
             <VBox HBox.hgrow="ALWAYS" prefHeight="720.0" spacing="0">
 
+                <!-- Top bar -->
                 <HBox alignment="CENTER_LEFT"
                       style="-fx-background-color: white;
                              -fx-padding: 14 28;
@@ -167,156 +174,138 @@
                            style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
                 </HBox>
 
-                <!-- mainContentArea — এখানে সব page swap হবে -->
+                <!-- mainContentArea — সব page এখানে swap হবে -->
                 <VBox fx:id="mainContentArea" VBox.vgrow="ALWAYS">
-                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
-                            style="-fx-background: transparent; -fx-background-color: transparent;
-                                   -fx-padding: 0;">
-                    <content>
-                        <!-- HOME PAGE CONTENT -->
-                        <VBox fx:id="homeContent" spacing="20"
-                              style="-fx-padding: 24;">
+                    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                                style="-fx-background: transparent; -fx-background-color: transparent;
+                                       -fx-padding: 0;">
+                        <content>
 
-                            <!-- Summary Cards Row -->
-                            <HBox spacing="16">
+                            <!-- ══ HOME PAGE CONTENT ══ -->
+                            <VBox fx:id="homeContent" spacing="20"
+                                  style="-fx-padding: 24;">
 
-                                <!-- Attendance Card -->
-                                <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
+                                <!-- Summary Cards Row — Due card removed -->
+                                <HBox spacing="16">
+
+                                    <!-- Attendance Card -->
+                                    <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
+                                          style="-fx-background-color: white;
+                                                 -fx-background-radius: 12;
+                                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+                                                 -fx-padding: 20;">
+                                        <Label text="📅  Overall Attendance"
+                                               style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
+                                        <Label fx:id="overallAttendanceLabel" text="—"
+                                               style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;"/>
+                                        <Label text="This Semester"
+                                               style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                                    </VBox>
+
+                                    <!-- Notices Card -->
+                                    <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
+                                          style="-fx-background-color: white;
+                                                 -fx-background-radius: 12;
+                                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+                                                 -fx-padding: 20;">
+                                        <Label text="📢  New Notices"
+                                               style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
+                                        <Label fx:id="noticeCountLabel" text="—"
+                                               style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
+                                        <Label text="Unread"
+                                               style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                                    </VBox>
+
+                                    <!-- Current Courses Card -->
+                                    <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
+                                          style="-fx-background-color: white;
+                                                 -fx-background-radius: 12;
+                                                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
+                                                 -fx-padding: 20;">
+                                        <Label text="📚  Enrolled Courses"
+                                               style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
+                                        <Label fx:id="courseCountLabel" text="—"
+                                               style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
+                                        <Label text="This Semester"
+                                               style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                                    </VBox>
+
+                                </HBox>
+
+                                <!-- Course-wise Attendance -->
+                                <VBox spacing="14"
                                       style="-fx-background-color: white;
                                              -fx-background-radius: 12;
                                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                             -fx-padding: 20;">
-                                    <Label text="📅  Overall Attendance"
-                                           style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
-                                    <Label fx:id="overallAttendanceLabel" text="82%"
-                                           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;"/>
-                                    <Label text="This Semester"
-                                           style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                                             -fx-padding: 22;">
+
+                                    <HBox alignment="CENTER_LEFT" spacing="16">
+                                        <Label text="Course-wise Attendance"
+                                               style="-fx-font-size: 15px;
+                                                      -fx-font-weight: bold;
+                                                      -fx-text-fill: #2c3e50;"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <ComboBox fx:id="courseDropdown"
+                                                  promptText="Select Course"
+                                                  onAction="#loadCourseAttendance"
+                                                  style="-fx-pref-width: 220px;
+                                                         -fx-background-radius: 8;
+                                                         -fx-border-radius: 8;
+                                                         -fx-border-color: #ccc;
+                                                         -fx-font-size: 12px;"/>
+                                    </HBox>
+
+                                    <Separator/>
+
+                                    <HBox spacing="30" alignment="CENTER_LEFT"
+                                          style="-fx-padding: 6 0 0 0;">
+                                        <VBox spacing="4" alignment="CENTER">
+                                            <Label text="Classes Held"
+                                                   style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
+                                            <Label fx:id="classesHeldLabel" text="—"
+                                                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+                                        </VBox>
+                                        <VBox spacing="4" alignment="CENTER">
+                                            <Label text="Attended"
+                                                   style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
+                                            <Label fx:id="classesAttendedLabel" text="—"
+                                                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;"/>
+                                        </VBox>
+                                        <VBox spacing="4" alignment="CENTER">
+                                            <Label text="Attendance %"
+                                                   style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
+                                            <Label fx:id="courseAttendancePctLabel" text="—"
+                                                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
+                                        </VBox>
+                                        <VBox spacing="4" alignment="CENTER">
+                                            <Label text="Status"
+                                                   style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
+                                            <Label fx:id="attendanceStatusLabel" text="—"
+                                                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+                                        </VBox>
+                                    </HBox>
+
                                 </VBox>
 
-                                <!-- Due Amount Card -->
-                                <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
+                                <!-- Current Courses List -->
+                                <VBox spacing="12"
                                       style="-fx-background-color: white;
                                              -fx-background-radius: 12;
                                              -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                             -fx-padding: 20;">
-                                    <Label text="💰  Due Amount"
-                                           style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
-                                    <Label fx:id="dueAmountLabel" text="৳ 0"
-                                           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
-                                    <Label text="Pending Payment"
-                                           style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
-                                </VBox>
-
-                                <!-- Notices Card -->
-                                <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
-                                      style="-fx-background-color: white;
-                                             -fx-background-radius: 12;
-                                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                             -fx-padding: 20;">
-                                    <Label text="📢  New Notices"
-                                           style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
-                                    <Label fx:id="noticeCountLabel" text="3"
-                                           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #e67e22;"/>
-                                    <Label text="Unread"
-                                           style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
-                                </VBox>
-
-                                <!-- Current Courses Card -->
-                                <VBox HBox.hgrow="ALWAYS" spacing="6" alignment="CENTER_LEFT"
-                                      style="-fx-background-color: white;
-                                             -fx-background-radius: 12;
-                                             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                             -fx-padding: 20;">
-                                    <Label text="📚  Enrolled Courses"
-                                           style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;"/>
-                                    <Label fx:id="courseCountLabel" text="5"
-                                           style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
-                                    <Label text="This Semester"
-                                           style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
-                                </VBox>
-
-                            </HBox>
-
-                            <!-- Course-wise Attendance Section -->
-                            <VBox spacing="14"
-                                  style="-fx-background-color: white;
-                                         -fx-background-radius: 12;
-                                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                         -fx-padding: 22;">
-
-                                <HBox alignment="CENTER_LEFT" spacing="16">
-                                    <Label text="Course-wise Attendance"
+                                             -fx-padding: 22;">
+                                    <Label text="Current Courses"
                                            style="-fx-font-size: 15px;
                                                   -fx-font-weight: bold;
                                                   -fx-text-fill: #2c3e50;"/>
-                                    <Region HBox.hgrow="ALWAYS"/>
-                                    <ComboBox fx:id="courseDropdown"
-                                              promptText="Select Course"
-                                              onAction="#loadCourseAttendance"
-                                              style="-fx-pref-width: 220px;
-                                                     -fx-background-radius: 8;
-                                                     -fx-border-radius: 8;
-                                                     -fx-border-color: #ccc;
-                                                     -fx-font-size: 12px;"/>
-                                </HBox>
-
-                                <Separator/>
-
-                                <!-- Attendance result -->
-                                <HBox spacing="30" alignment="CENTER_LEFT"
-                                      style="-fx-padding: 6 0 0 0;">
-                                    <VBox spacing="4" alignment="CENTER">
-                                        <Label text="Classes Held"
-                                               style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
-                                        <Label fx:id="classesHeldLabel" text="—"
-                                               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-                                    </VBox>
-                                    <VBox spacing="4" alignment="CENTER">
-                                        <Label text="Attended"
-                                               style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
-                                        <Label fx:id="classesAttendedLabel" text="—"
-                                               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;"/>
-                                    </VBox>
-                                    <VBox spacing="4" alignment="CENTER">
-                                        <Label text="Attendance %"
-                                               style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
-                                        <Label fx:id="courseAttendancePctLabel" text="—"
-                                               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #3498db;"/>
-                                    </VBox>
-                                    <VBox spacing="4" alignment="CENTER">
-                                        <Label text="Status"
-                                               style="-fx-font-size: 11px; -fx-text-fill: #999;"/>
-                                        <Label fx:id="attendanceStatusLabel" text="—"
-                                               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
-                                    </VBox>
-                                </HBox>
+                                    <Separator/>
+                                    <VBox fx:id="courseListContainer" spacing="8"/>
+                                </VBox>
 
                             </VBox>
+                            <!-- END HOME CONTENT -->
 
-                            <!-- Current Courses List -->
-                            <VBox spacing="12"
-                                  style="-fx-background-color: white;
-                                         -fx-background-radius: 12;
-                                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
-                                         -fx-padding: 22;">
-
-                                <Label text="Current Courses"
-                                       style="-fx-font-size: 15px;
-                                              -fx-font-weight: bold;
-                                              -fx-text-fill: #2c3e50;"/>
-                                <Separator/>
-
-                                <!-- Course rows will be added dynamically by controller -->
-                                <VBox fx:id="courseListContainer" spacing="8"/>
-
-                            </VBox>
-
-                        </VBox>
-                        <!-- END HOME CONTENT -->
-
-                    </content>
-                </ScrollPane>
+                        </content>
+                    </ScrollPane>
                 </VBox>
                 <!-- END mainContentArea -->
 

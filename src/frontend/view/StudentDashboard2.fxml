@@ -13,7 +13,7 @@
     style="-fx-background-color: linear-gradient(to bottom right, #e0f7fa, #b2ebf2);"
     xmlns="http://javafx.com/javafx/21"
     xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="frontend.controller.FacultyDashboardController">
+    fx:controller="frontend.controller.StudentDashboardController">
 
     <children>
         <HBox prefHeight="720.0" prefWidth="1100.0"
@@ -25,7 +25,7 @@
                   style="-fx-background-color: #1a2e3b;
                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 15, 0, 3, 0);">
 
-                <!-- Faculty Profile -->
+                <!-- Student Avatar + Name -->
                 <VBox alignment="CENTER" spacing="6"
                       style="-fx-padding: 28 16 20 16; -fx-background-color: #14242f;">
                     <Label text="🎓"
@@ -33,15 +33,15 @@
                                   -fx-background-color: #2a9d8f;
                                   -fx-background-radius: 50;
                                   -fx-padding: 10 13;" />
-                    <Label fx:id="facultyNameLabel" text="Faculty Name"
+                    <Label fx:id="studentNameLabel" text="Student Name"
                            style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: white;" />
-                    <Label text="Faculty"
+                    <Label text="Student"
                            style="-fx-font-size: 11px; -fx-text-fill: #a0b4bf;" />
                     <Label fx:id="departmentLabel" text="Department"
-                           style="-fx-font-size: 11px; -fx-text-fill: #a0b4bf;" />
+                           style="-fx-font-size: 11px; -fx-text-fill: #7fb3c8;" />
                 </VBox>
 
-                <!-- Nav -->
+                <!-- Nav Menu -->
                 <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
                             style="-fx-background: transparent; -fx-background-color: transparent;">
                     <content>
@@ -61,22 +61,14 @@
 
                             <Separator style="-fx-background-color: #2a3f4f;" />
 
-                            <Button fx:id="btnAttendance" text="📅   Attendance Entry"
-                                    onAction="#showAttendanceEntry" maxWidth="Infinity"
+                            <Button fx:id="btnResults" text="📊   My Results"
+                                    onAction="#showResults" maxWidth="Infinity"
                                     style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;
                                            -fx-font-size: 13px; -fx-alignment: CENTER-LEFT;
                                            -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;" />
 
-                            <Button fx:id="btnResults" text="📝   Results Entry"
-                                    onAction="#showResultsEntry" maxWidth="Infinity"
-                                    style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;
-                                           -fx-font-size: 13px; -fx-alignment: CENTER-LEFT;
-                                           -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;" />
-
-                            <Separator style="-fx-background-color: #2a3f4f;" />
-
-                            <Button fx:id="btnStudentList" text="👥   Student List"
-                                    onAction="#showStudentList" maxWidth="Infinity"
+                            <Button fx:id="btnCourses" text="📚   My Courses"
+                                    onAction="#showCourses" maxWidth="Infinity"
                                     style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;
                                            -fx-font-size: 13px; -fx-alignment: CENTER-LEFT;
                                            -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;" />
@@ -107,7 +99,7 @@
                     <Label fx:id="pageTitle" text="Home"
                            style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label text="Faculty Portal"
+                    <Label text="Student Portal"
                            style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;" />
                 </HBox>
 
@@ -117,8 +109,8 @@
                     <!-- HOME CONTENT -->
                     <VBox fx:id="homeContent" spacing="20" style="-fx-padding: 24;">
 
-                        <Label text="Welcome to Faculty Portal"
-                               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
+                        <Label fx:id="welcomeLabel" text="Welcome! 👋"
+                               style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
 
                         <HBox spacing="20">
 
@@ -126,11 +118,11 @@
                                   style="-fx-background-color: white; -fx-background-radius: 12;
                                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
                                          -fx-padding: 20;">
-                                <Label text="👥  My Students"
+                                <Label text="📚  Enrolled Courses"
                                        style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;" />
-                                <Label fx:id="totalStudentsLabel" text="—"
-                                       style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #3498db;" />
-                                <Label text="Enrolled in my courses"
+                                <Label fx:id="enrolledCoursesLabel" text="—"
+                                       style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;" />
+                                <Label text="This Semester"
                                        style="-fx-font-size: 11px; -fx-text-fill: #aaa;" />
                             </VBox>
 
@@ -138,11 +130,11 @@
                                   style="-fx-background-color: white; -fx-background-radius: 12;
                                          -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);
                                          -fx-padding: 20;">
-                                <Label text="📚  My Courses"
+                                <Label text="📊  Published Results"
                                        style="-fx-font-size: 12px; -fx-text-fill: #7f8c8d;" />
-                                <Label fx:id="totalCoursesLabel" text="—"
-                                       style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #2a9d8f;" />
-                                <Label text="Assigned by Admin"
+                                <Label fx:id="publishedResultsLabel" text="—"
+                                       style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #3498db;" />
+                                <Label text="Courses graded"
                                        style="-fx-font-size: 11px; -fx-text-fill: #aaa;" />
                             </VBox>
 
@@ -152,13 +144,11 @@
                                          -fx-padding: 20;">
                                 <Label text="Quick Guide"
                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;" />
-                                <Label text="📅  Attendance Entry → Select your course → Enter data"
+                                <Label text="👤  My Profile → View &amp; edit your info"
                                        style="-fx-font-size: 12px; -fx-text-fill: #555;" />
-                                <Label text="📝  Results Entry → CT / Quiz / Term Final marks"
+                                <Label text="📊  My Results → CT &amp; Semester Final results"
                                        style="-fx-font-size: 12px; -fx-text-fill: #555;" />
-                                <Label text="👥  Student List → View students per your course"
-                                       style="-fx-font-size: 12px; -fx-text-fill: #555;" />
-                                <Label text="👤  My Profile → Edit contact info / change password"
+                                <Label text="📚  My Courses → See enrolled courses"
                                        style="-fx-font-size: 12px; -fx-text-fill: #555;" />
                             </VBox>
 
