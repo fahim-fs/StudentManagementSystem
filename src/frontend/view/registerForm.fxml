@@ -20,17 +20,14 @@
 
     <children>
 
-        <!-- Card Panel -->
         <VBox layoutX="80.0" layoutY="40.0" prefWidth="805.0" spacing="0"
               style="-fx-background-color: white;                      -fx-background-radius: 16;                      -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 20, 0, 0, 6);                      -fx-padding: 35 40 35 40;">
 
-            <!-- Title -->
             <Label style="-fx-font-size: 26px;                                                  -fx-font-weight: bold;                                                  -fx-text-fill: #2c3e50;                                                  -fx-padding: 0 0 5 0;"
                    text="Create Account"/>
             <Label style="-fx-font-size: 13px; -fx-text-fill: #7f8c8d; -fx-padding: 0 0 20 0;"
                    text="Please fill in the details below to register."/>
 
-            <!-- Row 1: First Name & Last Name -->
             <HBox spacing="30" style="-fx-padding: 0 0 15 0;">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;" text="First Name"/>
@@ -44,7 +41,6 @@
                 </VBox>
             </HBox>
 
-            <!-- Row 2: Father's Name & Mother's Name -->
             <HBox spacing="30" style="-fx-padding: 0 0 15 0;">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;"
@@ -60,7 +56,6 @@
                 </VBox>
             </HBox>
 
-            <!-- Row 3: Date of Birth & Phone -->
             <HBox spacing="30" style="-fx-padding: 0 0 15 0;">
                 <VBox prefHeight="60.0" prefWidth="166.0" spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;"
@@ -75,14 +70,12 @@
                 </VBox>
             </HBox>
 
-            <!-- Row 4: Address -->
             <VBox spacing="5" style="-fx-padding: 0 0 15 0;">
                 <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;" text="Address"/>
                 <TextField fx:id="address" promptText="House#, Road#, City"
                            style="-fx-pref-height: 36px;                                   -fx-background-radius: 8;                                   -fx-border-radius: 8;                                   -fx-border-color: #ccc;                                   -fx-border-width: 1;                                   -fx-padding: 0 10;                                   -fx-font-size: 13px;"/>
             </VBox>
 
-            <!-- Row 5: Gender & Session -->
             <HBox spacing="30" style="-fx-padding: 0 0 15 0;">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;" text="Gender"/>
@@ -103,7 +96,6 @@
                 </VBox>
             </HBox>
 
-            <!-- Row 6: Department & Username -->
             <HBox spacing="30" style="-fx-padding: 0 0 15 0;">
                 <VBox prefHeight="60.0" prefWidth="173.0" spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;" text="Department"/>
@@ -117,7 +109,6 @@
                 </VBox>
             </HBox>
 
-            <!-- Row 7: Password & Confirm Password -->
             <HBox spacing="30" style="-fx-padding: 0 0 10 0;">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label style="-fx-font-size: 13px; -fx-text-fill: #555; -fx-font-weight: bold;" text="Password"/>
@@ -132,16 +123,13 @@
                 </VBox>
             </HBox>
 
-            <!-- Error label -->
             <Label fx:id="errorLabel" style="-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-padding: 0 0 6 0;"
                    text=""/>
 
-            <!-- Create Account Button -->
             <Button fx:id="registerBtn" onAction="#handleRegister"
                     style="-fx-background-color: #3498db;                            -fx-text-fill: white;                            -fx-font-size: 15px;                            -fx-font-weight: bold;                            -fx-pref-height: 42px;                            -fx-pref-width: 9999;                            -fx-background-radius: 10;                            -fx-cursor: hand;"
                     text="Create Account"/>
 
-            <!-- Sign In link -->
             <HBox alignment="CENTER" spacing="4" style="-fx-padding: 12 0 0 0;">
                 <Label style="-fx-font-size: 13px; -fx-text-fill: #555;" text="Already have an account?"/>
                 <Hyperlink fx:id="signInLink" onAction="#goToSignIn"

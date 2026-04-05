@@ -12,7 +12,7 @@ import java.util.List;
 
 public class AdminDAO {
 
-    // ── Admin ID Generation ───────────────────────────────────────────────────
+    // Admin ID Generation
 
     private String generateAdminId(Connection conn) throws SQLException {
         String sql = "SELECT MAX(admin_id) FROM users WHERE role = 'ADMIN'";
@@ -30,7 +30,7 @@ public class AdminDAO {
         }
     }
 
-    // ── Manual Admin Insert ───────────────────────────────────────────────────
+    // Manual Admin
 
     /**
      * Manually inserts an admin into the database.
@@ -69,7 +69,7 @@ public class AdminDAO {
         }
     }
 
-    // ── Fetch Admin by Email ──────────────────────────────────────────────────
+    // Fetch Admin by Email
 
     public Admin getAdminByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ? AND role = 'ADMIN'";
@@ -89,7 +89,7 @@ public class AdminDAO {
         return null;
     }
 
-    // ── Fetch Pending Students ────────────────────────────────────────────────
+    // Fetch Pending Students
 
     public List<Student> getPendingStudents() {
         String sql = "SELECT * FROM users WHERE role = 'STUDENT' AND status = 'PENDING'";
@@ -109,7 +109,7 @@ public class AdminDAO {
         return pendingList;
     }
 
-    // ── Update Student Status ─────────────────────────────────────────────────
+    // Update Student Status
 
     public boolean updateStudentStatus(int studentId, Status status) {
         String sql = "UPDATE users SET status = ? WHERE id = ? AND role = 'STUDENT'";
@@ -129,7 +129,7 @@ public class AdminDAO {
         }
     }
 
-    // ── Row Mappers ───────────────────────────────────────────────────────────
+    // Row Mappers
 
     private Admin mapRow(ResultSet rs) throws SQLException {
         Admin admin = new Admin();

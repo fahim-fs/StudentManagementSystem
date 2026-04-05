@@ -21,7 +21,7 @@ public class User {
     private String    username;
     private String    password;   // backend should hash this before storing
 
-    // ── Constructor ───────────────────────────────────────────────────────────
+    //  Constructor
     public User(String firstName, String lastName, String fatherName, String motherName,
                 LocalDate dateOfBirth, String phoneNumber, String address, String gender,
                 String session, String department, String username, String password) {
@@ -39,7 +39,7 @@ public class User {
         this.password    = password;
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────────
+    // Getters
     public String    getFirstName()   { return firstName;   }
     public String    getLastName()    { return lastName;    }
     public String    getFatherName()  { return fatherName;  }
@@ -53,7 +53,7 @@ public class User {
     public String    getUsername()    { return username;    }
     public String    getPassword()    { return password;    }
 
-    // ── Setters (optional, backend may need these) ────────────────────────────
+    //  Setters (optional, backend may need these)
     public void setFirstName(String firstName)     { this.firstName   = firstName;   }
     public void setLastName(String lastName)       { this.lastName    = lastName;    }
     public void setFatherName(String fatherName)   { this.fatherName  = fatherName;  }

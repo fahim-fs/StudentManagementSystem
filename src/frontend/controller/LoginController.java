@@ -38,7 +38,7 @@ public class LoginController implements Initializable {
         password.setOnAction(e -> handleLogin(new ActionEvent(password, null)));
     }
 
-    // ── Login handler ─────────────────────────────────────────────────────────
+    //  Login handler 
     @FXML
     private void handleLogin(ActionEvent event) {
         clearMessage();
@@ -62,14 +62,14 @@ public class LoginController implements Initializable {
         }
     }
 
-    // ── Forgot password ───────────────────────────────────────────────────────
+    //  Forgot password ─
     @FXML
     private void handleForgotPassword(ActionEvent event) {
         // TODO: navigate to a forgot-password / reset screen
         showError("Please contact your administrator to reset your password.");
     }
 
-    // ── Go to Register ────────────────────────────────────────────────────────
+    //  Go to Register 
     @FXML
     private void goToRegister(ActionEvent event) {
         try {
@@ -84,7 +84,7 @@ public class LoginController implements Initializable {
         }
     }
 
-    // ── Navigate to Dashboard after login ────────────────────────────────────
+    //  Navigate to Dashboard after login 
     private void navigateToDashboard(ActionEvent event) {
         try {
             Parent root = FXMLLoader.load(
@@ -94,11 +94,10 @@ public class LoginController implements Initializable {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            // dashboard.fxml not created yet — silently ignore during development
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    //  Helpers
     private void showError(String msg) {
         messageLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-padding: 0 0 8 0;");
         messageLabel.setText("⚠  " + msg);

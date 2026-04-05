@@ -25,7 +25,6 @@ public class Student {
     private String password;
     private java.time.LocalDate dateOfBirth;
 
-    // ── Constructors ──────────────────────────────────────────────────────────
     public Student() {
         this.id = 0;
         this.firstName = "";
@@ -41,7 +40,6 @@ public class Student {
         this.dateOfBirth = null;
     }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int getId() {
         return id;
     }
@@ -170,7 +168,6 @@ public class Student {
         this.status = v;
     }
 
-    // ── Password (hashed) ─────────────────────────────────────────────────────
     public void setPassword(String plainPassword) {
         this.password = PasswordUtil.hashPassword(plainPassword);
     }
@@ -191,7 +188,6 @@ public class Student {
         return dateOfBirth;
     }
 
-    // ── Debug ─────────────────────────────────────────────────────────────────
     @Override
     public String toString() {
         return "Student{id=" + id + ", name='" + firstName + " " + lastName

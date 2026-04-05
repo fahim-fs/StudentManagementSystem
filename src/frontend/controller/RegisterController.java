@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 
 public class RegisterController implements Initializable {
 
-    // ── FXML fields ──────────────────────────────────────────────────────────
+    //  FXML fields
     @FXML private TextField        f_name;
     @FXML private TextField        l_name;
     @FXML private TextField        father_name;
@@ -39,7 +39,7 @@ public class RegisterController implements Initializable {
     @FXML private Button           registerBtn;
     @FXML private Hyperlink        signInLink;
 
-    // ── Initialization ────────────────────────────────────────────────────────
+    //  Initialization
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         department.setItems(FXCollections.observableArrayList(
@@ -73,12 +73,12 @@ public class RegisterController implements Initializable {
         });
     }
 
-    // ── Register handler ──────────────────────────────────────────────────────
+    //  Register handler
     @FXML
     private void handleRegister(ActionEvent event) {
         clearError();
 
-        // ── Validation ────────────────────────────────────────────────────────
+        //  Validation
         if (isBlank(f_name))               { showError("First name is required.");         return; }
         if (isBlank(l_name))               { showError("Last name is required.");          return; }
         if (isBlank(father_name))          { showError("Father's name is required.");      return; }
@@ -131,7 +131,7 @@ public class RegisterController implements Initializable {
         }
     }
 
-    // ── Navigate to Sign-In ───────────────────────────────────────────────────
+    //  Navigate to Sign-In
     @FXML
     private void goToSignIn(ActionEvent event) {
         try {
@@ -145,7 +145,7 @@ public class RegisterController implements Initializable {
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    //  Helpers
     private boolean isBlank(TextField tf) {
         return tf.getText() == null || tf.getText().isBlank();
     }

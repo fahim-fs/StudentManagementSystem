@@ -1,4 +1,4 @@
-package backend.dao;
+package backend.util;
 
 import backend.model.Role;
 import backend.model.Student;

@@ -15,7 +15,6 @@ public class Admin {
     private Role role;
     private List<Student> pendingStudents;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
     public Admin() {
         this.role = Role.ADMIN;
         this.pendingStudents = new ArrayList<>();
@@ -31,7 +30,6 @@ public class Admin {
         this.pendingStudents = new ArrayList<>();
     }
 
-    // ── Getters / Setters ─────────────────────────────────────────────────────
     public int getId() {
         return id;
     }
@@ -100,7 +98,6 @@ public class Admin {
         this.pendingStudents = pendingStudents;
     }
 
-    // ── Methods ───────────────────────────────────────────────────────────────
 
     /**
      * Loads unapproved (PENDING) students from the database into the local list.
@@ -160,7 +157,6 @@ public class Admin {
      * }
      */
 
-    // ── Debug ─────────────────────────────────────────────────────────────────
     @Override
     public String toString() {
         return "Admin{adminId='" + adminId + "', name='" + firstName + " " + lastName
