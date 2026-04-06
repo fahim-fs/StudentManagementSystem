@@ -28,6 +28,7 @@ public class FacultyDashboardController implements Initializable {
     @FXML private Button btnProfile;
     @FXML private Button btnAttendance;
     @FXML private Button btnResults;
+    @FXML private Button btnNotices;
     @FXML private Button btnStudentList;
     @FXML private Button btnLogout;
 
@@ -57,7 +58,7 @@ public class FacultyDashboardController implements Initializable {
         facultyNameLabel.setText(faculty.getFirstName() + " " + faculty.getLastName());
         departmentLabel.setText(faculty.getDepartment() != null ? faculty.getDepartment() : "—");
 
-        Button[] navBtns = {btnHome, btnProfile, btnAttendance, btnResults, btnStudentList};
+        Button[] navBtns = {btnHome, btnProfile, btnAttendance, btnResults, btnNotices, btnStudentList};
         for (Button btn : navBtns) {
             btn.setOnMouseEntered(e -> { if (btn != activeBtn) btn.setStyle(INACTIVE_STYLE.replace("transparent", "#243b4a")); });
             btn.setOnMouseExited(e ->  { if (btn != activeBtn) btn.setStyle(INACTIVE_STYLE); });
@@ -177,6 +178,11 @@ public class FacultyDashboardController implements Initializable {
         mainContentArea.getChildren().setAll(buildResultsView());
     }
 
+    @FXML private void showNotices(ActionEvent e) {
+        setActive(btnNotices); pageTitle.setText("Notices");
+        mainContentArea.getChildren().setAll(buildNoticesView());
+    }
+
     @FXML private void showStudentList(ActionEvent e) {
         setActive(btnStudentList); pageTitle.setText("Student List");
         mainContentArea.getChildren().setAll(buildStudentListView());
@@ -192,9 +198,12 @@ public class FacultyDashboardController implements Initializable {
         VBox infoCard = card();
         infoCard.getChildren().add(sectionHeader("Profile Information"));
 
+        String[] contact = getCurrentContact(faculty.getId());
         String[][] info = {
             {"Name",       faculty.getFirstName() + " " + faculty.getLastName()},
-            {"Username",   faculty.getUsername()},
+            {"Username",   faculty.getUsername() != null ? faculty.getUsername() : "—"},
+            {"Email",      contact[0].isEmpty() ? "—" : contact[0]},
+            {"Phone",      contact[1].isEmpty() ? "—" : contact[1]},
             {"Department", faculty.getDepartment() != null ? faculty.getDepartment() : "—"},
             {"Role",       "Faculty"},
             {"Status",     faculty.getStatus() != null ? faculty.getStatus().name() : "APPROVED"}
@@ -209,17 +218,78 @@ public class FacultyDashboardController implements Initializable {
             infoCard.getChildren().add(row);
         }
 
-        // ── Edit Contact Card ─────────────────────────────────────────────────
-        VBox editCard = card();
-        editCard.getChildren().add(sectionHeader("Edit Contact Info"));
+        // ── Toggle buttons ────────────────────────────────────────────────────
+        Button editToggleBtn = new Button("✏  Edit Info");
+        editToggleBtn.setStyle(
+                "-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+
+        Button passToggleBtn = new Button("🔒  Reset Password");
+        passToggleBtn.setStyle(
+                "-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+
+        HBox btnRow = new HBox(12, editToggleBtn, passToggleBtn);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+
+        // ── Edit Info Panel (hidden by default) ───────────────────────────────
+        VBox editPanel = buildEditInfoPanel();
+        editPanel.setVisible(false);
+        editPanel.setManaged(false);
+
+        // ── Reset Password Panel (hidden by default) ──────────────────────────
+        VBox passPanel = buildResetPasswordPanel();
+        passPanel.setVisible(false);
+        passPanel.setManaged(false);
+
+        // ── Toggle logic ──────────────────────────────────────────────────────
+        editToggleBtn.setOnAction(ev -> {
+            boolean nowVisible = !editPanel.isVisible();
+            editPanel.setVisible(nowVisible);
+            editPanel.setManaged(nowVisible);
+            // close the other panel
+            passPanel.setVisible(false);
+            passPanel.setManaged(false);
+            // button style: active = darker shade
+            editToggleBtn.setStyle(
+                "-fx-background-color: " + (nowVisible ? "#1f7a6e" : "#2a9d8f") + ";" +
+                "-fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+            passToggleBtn.setStyle(
+                "-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+        });
+
+        passToggleBtn.setOnAction(ev -> {
+            boolean nowVisible = !passPanel.isVisible();
+            passPanel.setVisible(nowVisible);
+            passPanel.setManaged(nowVisible);
+            // close the other panel
+            editPanel.setVisible(false);
+            editPanel.setManaged(false);
+            // button style
+            passToggleBtn.setStyle(
+                "-fx-background-color: " + (nowVisible ? "#b7510a" : "#e67e22") + ";" +
+                "-fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+            editToggleBtn.setStyle(
+                "-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-size: 13px;" +
+                "-fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 9 22;");
+        });
+
+        root.getChildren().addAll(infoCard, btnRow, editPanel, passPanel);
+        return root;
+    }
+
+    // ── Edit Info Panel ───────────────────────────────────────────────────────
+    private VBox buildEditInfoPanel() {
+        VBox panel = card();
+        panel.getChildren().add(sectionHeader("Edit Contact Info"));
         Label editMsg = new Label();
 
-        // Load current values from DB
         String[] currentContact = getCurrentContact(faculty.getId());
-        TextField emailFld = formField("Email");
-        emailFld.setText(currentContact[0]);
-        TextField phoneFld = formField("Phone");
-        phoneFld.setText(currentContact[1]);
+        TextField emailFld = formField("Email"); emailFld.setText(currentContact[0]);
+        TextField phoneFld = formField("Phone"); phoneFld.setText(currentContact[1]);
 
         Button saveBtn = styledBtn("Save Changes", "#2a9d8f");
         saveBtn.setOnAction(ev -> {
@@ -235,23 +305,22 @@ public class FacultyDashboardController implements Initializable {
             } catch (SQLException e) { setMsg(editMsg, "⚠ Update failed.", false); }
         });
 
-        editCard.getChildren().addAll(
+        panel.getChildren().addAll(
                 labeledField("Email *", emailFld),
                 labeledField("Phone",   phoneFld),
-                saveBtn, editMsg
-        );
+                saveBtn, editMsg);
+        return panel;
+    }
 
-        // ── Change Password Card ──────────────────────────────────────────────
-        VBox passCard = card();
-        passCard.getChildren().add(sectionHeader("Change Password"));
+    // ── Reset Password Panel ──────────────────────────────────────────────────
+    private VBox buildResetPasswordPanel() {
+        VBox panel = card();
+        panel.getChildren().add(sectionHeader("Reset Password"));
         Label passMsg = new Label();
 
-        PasswordField currentPassFld = new PasswordField();
-        currentPassFld.setPromptText("Current Password");
-        PasswordField newPassFld     = new PasswordField();
-        newPassFld.setPromptText("New Password (min 6 chars)");
-        PasswordField confirmPassFld = new PasswordField();
-        confirmPassFld.setPromptText("Confirm New Password");
+        PasswordField currentPassFld = new PasswordField(); currentPassFld.setPromptText("Current Password");
+        PasswordField newPassFld     = new PasswordField(); newPassFld.setPromptText("New Password (min 6 chars)");
+        PasswordField confirmPassFld = new PasswordField(); confirmPassFld.setPromptText("Confirm New Password");
         styleField(currentPassFld); styleField(newPassFld); styleField(confirmPassFld);
 
         Button changePassBtn = styledBtn("Change Password", "#e67e22");
@@ -263,39 +332,32 @@ public class FacultyDashboardController implements Initializable {
             if (!newPassFld.getText().equals(confirmPassFld.getText())) {
                 setMsg(passMsg, "⚠ Passwords do not match.", false); return; }
 
-            // Verify current password
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
                          "SELECT password FROM users WHERE id=?")) {
-                ps.setInt(1, faculty.getId());
-                ResultSet rs = ps.executeQuery();
+                ps.setInt(1, faculty.getId()); ResultSet rs = ps.executeQuery();
                 if (!rs.next() || !PasswordUtil.checkPassword(
                         currentPassFld.getText(), rs.getString("password"))) {
                     setMsg(passMsg, "⚠ Current password is incorrect.", false); return;
                 }
             } catch (SQLException e) { setMsg(passMsg, "⚠ Error.", false); return; }
 
-            // Update password
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
                          "UPDATE users SET password=? WHERE id=?")) {
                 ps.setString(1, PasswordUtil.hashPassword(newPassFld.getText()));
-                ps.setInt(2, faculty.getId());
-                ps.executeUpdate();
+                ps.setInt(2, faculty.getId()); ps.executeUpdate();
                 currentPassFld.clear(); newPassFld.clear(); confirmPassFld.clear();
                 setMsg(passMsg, "✔ Password changed successfully.", true);
             } catch (SQLException e) { setMsg(passMsg, "⚠ Update failed.", false); }
         });
 
-        passCard.getChildren().addAll(
+        panel.getChildren().addAll(
                 labeledField("Current Password", currentPassFld),
                 labeledField("New Password",     newPassFld),
                 labeledField("Confirm",          confirmPassFld),
-                changePassBtn, passMsg
-        );
-
-        root.getChildren().addAll(infoCard, editCard, passCard);
-        return root;
+                changePassBtn, passMsg);
+        return panel;
     }
 
     private String[] getCurrentContact(int userId) {
@@ -603,6 +665,88 @@ public class FacultyDashboardController implements Initializable {
             ps.setDouble(3, marks); ps.setDouble(4, fullMarks); ps.setInt(5, faculty.getId());
             ps.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  NOTICES VIEW — admin posted notices পড়া
+    // ══════════════════════════════════════════════════════════════════════════
+    private VBox buildNoticesView() {
+        VBox root = new VBox(16); root.setStyle("-fx-padding: 24;");
+
+        Label msgLabel = new Label();
+        VBox  noticeList = new VBox(12);
+
+        Runnable load = () -> {
+            noticeList.getChildren().clear();
+            String sql = "SELECT * FROM notices " +
+                         "WHERE audience = 'All' OR audience = 'Faculty Only' " +
+                         "ORDER BY created_at DESC";
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                boolean any = false;
+                while (rs.next()) {
+                    any = true;
+                    VBox card = new VBox(8);
+                    card.setStyle("-fx-background-color: white; -fx-background-radius: 12;" +
+                                  "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);" +
+                                  "-fx-padding: 16 18;");
+
+                    // ── Top row: title + audience badge + time ────────────────
+                    HBox top = new HBox(10);
+                    top.setAlignment(Pos.CENTER_LEFT);
+
+                    Label titleLbl = new Label(rs.getString("title"));
+                    titleLbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+
+                    Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    String audience = rs.getString("audience");
+                    Label audienceLbl = new Label(audience);
+                    audienceLbl.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;" +
+                                         "-fx-font-size: 10px; -fx-background-radius: 10; -fx-padding: 2 8;");
+
+                    Timestamp ts = rs.getTimestamp("created_at");
+                    String timeStr = ts != null ? ts.toLocalDateTime()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) : "";
+                    Label timeLbl = new Label(timeStr);
+                    timeLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #aaa;");
+
+                    top.getChildren().addAll(titleLbl, spacer, audienceLbl, timeLbl);
+
+                    // ── Body ──────────────────────────────────────────────────
+                    Label bodyLbl = new Label(rs.getString("body"));
+                    bodyLbl.setWrapText(true);
+                    bodyLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #555; -fx-padding: 4 0 0 0;");
+
+                    card.getChildren().addAll(top, bodyLbl);
+                    noticeList.getChildren().add(card);
+                }
+
+                if (!any) {
+                    Label empty = new Label("📭  No notices at the moment.");
+                    empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #aaa; -fx-padding: 20 0;");
+                    noticeList.getChildren().add(empty);
+                }
+
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                setMsg(msgLabel, "⚠ Could not load notices.", false);
+            }
+        };
+
+        load.run();
+
+        Button refreshBtn = styledBtn("↻  Refresh", "#3498db");
+        refreshBtn.setOnAction(ev -> load.run());
+
+        root.getChildren().addAll(
+                sectionHeader("Notices from Admin"),
+                refreshBtn,
+                msgLabel,
+                scrollWrap(noticeList));
+        return root;
     }
 
     // ══════════════════════════════════════════════════════════════════════════

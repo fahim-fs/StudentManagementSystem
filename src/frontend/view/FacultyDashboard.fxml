@@ -75,6 +75,10 @@
 
                             <Separator style="-fx-background-color: #2a3f4f;" />
 
+                            <Button fx:id="btnNotices" text="📢   Notices"
+                                    maxWidth="Infinity" onAction="#showNotices"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0; -fx-font-size: 13px;
+                                           -fx-alignment: CENTER-LEFT; -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;"/>
                             <Button fx:id="btnStudentList" text="👥   Student List"
                                     onAction="#showStudentList" maxWidth="Infinity"
                                     style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;

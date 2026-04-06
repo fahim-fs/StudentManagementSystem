@@ -6,8 +6,31 @@ import common.CourseData.Course;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CourseRegistrationDAO {
+
+    // ── Fetch courses from DB (admin added) ───────────────────────────────────
+    public List<Course> getCoursesFromDB(int level, int term) {
+        List<Course> list = new ArrayList<>();
+        String sql = "SELECT code, name, credit, faculty FROM courses " +
+                     "WHERE level = ? AND term = ? ORDER BY code";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, level); ps.setInt(2, term);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Course(
+                    rs.getString("code"),
+                    rs.getString("name"),
+                    rs.getDouble("credit"),
+                    rs.getString("faculty") != null ? rs.getString("faculty") : "TBA"
+                ));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
 
     public List<String> getRegisteredCourseCodes(int userId, int level, int term) {
         List<String> codes = new ArrayList<>();

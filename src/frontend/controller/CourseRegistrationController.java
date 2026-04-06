@@ -62,12 +62,21 @@ public class CourseRegistrationController implements Initializable {
         registeredCourseList.getChildren().clear();
         clearMessage();
 
-        List<Course> allCourses  = CourseData.getCourses(currentLevel, currentTerm);
+        // ── DB থেকে courses load হবে, CourseData নয় ──────────────────────────
+        List<Course> allCourses  = dao.getCoursesFromDB(currentLevel, currentTerm);
         List<String> registered  = dao.getRegisteredCourseCodes(student.getId(), currentLevel, currentTerm);
         List<String> approved    = dao.getApprovedCourseCodes(student.getId(), currentLevel, currentTerm);
         double       totalCredit = dao.getTotalCredit(student.getId(), currentLevel, currentTerm);
 
         updateCreditDisplay(totalCredit);
+
+        if (allCourses.isEmpty()) {
+            availableCourseList.getChildren().add(
+                    emptyLabel("No courses available for this level/term yet."));
+            if (registeredCourseList.getChildren().isEmpty())
+                registeredCourseList.getChildren().add(emptyLabel("No registered courses yet."));
+            return;
+        }
 
         for (Course course : allCourses) {
             if (registered.contains(course.code)) {

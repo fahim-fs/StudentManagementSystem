@@ -1,5 +1,9 @@
 package backend.util;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * ResultEngine — সব grading calculation এক জায়গায়।
  *
@@ -103,4 +107,18 @@ public class ResultEngine {
     public static double round2(double v) {
         return Math.round(v * 100.0) / 100.0;
     }
+
+    public static double getBest3(double[] ctArr) {
+        if (ctArr == null || ctArr.length == 0) return 0;
+        List<Double> valid = new ArrayList<>();
+        for (double m : ctArr) if (m >= 0) valid.add(m);
+        valid.sort(Collections.reverseOrder());
+        double sum = 0;
+        for (int i = 0; i < Math.min(3, valid.size()); i++) sum += valid.get(i);
+        return sum;
+    }
+
+    // ── Aliases ───────────────────────────────────────────────────────────────
+    public static double calcGradePoint(double total)  { return gradePoint(total); }
+    public static String calcLetterGrade(double total) { return letterGrade(total); }
 }
