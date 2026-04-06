@@ -39,6 +39,7 @@ public class FacultyDashboardController implements Initializable {
     @FXML private VBox  homeContent;
     @FXML private Label totalStudentsLabel;
     @FXML private Label totalCoursesLabel;
+    @FXML private Label noticeCountLabel;   // new — home page notice card
 
     private Student faculty;
     private Button  activeBtn;
@@ -71,16 +72,35 @@ public class FacultyDashboardController implements Initializable {
         totalCoursesLabel.setText(String.valueOf(courses.size()));
 
         // count distinct students enrolled in my courses
-        if (courses.isEmpty()) { totalStudentsLabel.setText("0"); return; }
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            String placeholders = String.join(",", Collections.nCopies(courses.size(), "?"));
-            PreparedStatement ps = conn.prepareStatement(
-                    "SELECT COUNT(DISTINCT user_id) FROM course_registrations " +
-                    "WHERE course_code IN (" + placeholders + ")");
-            for (int i = 0; i < courses.size(); i++) ps.setString(i + 1, courses.get(i));
-            ResultSet rs = ps.executeQuery();
-            totalStudentsLabel.setText(rs.next() ? String.valueOf(rs.getInt(1)) : "0");
-        } catch (SQLException e) { e.printStackTrace(); totalStudentsLabel.setText("0"); }
+        if (!courses.isEmpty()) {
+            try (Connection conn = DatabaseConnection.getConnection()) {
+                String placeholders = String.join(",", Collections.nCopies(courses.size(), "?"));
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT COUNT(DISTINCT user_id) FROM course_registrations " +
+                        "WHERE course_code IN (" + placeholders + ")");
+                for (int i = 0; i < courses.size(); i++) ps.setString(i + 1, courses.get(i));
+                ResultSet rs = ps.executeQuery();
+                totalStudentsLabel.setText(rs.next() ? String.valueOf(rs.getInt(1)) : "0");
+            } catch (SQLException e) { e.printStackTrace(); totalStudentsLabel.setText("0"); }
+        } else {
+            totalStudentsLabel.setText("0");
+        }
+
+        // ── Unread notice count for this faculty ─────────────────────────────
+        if (noticeCountLabel != null) {
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(
+                         "SELECT COUNT(*) FROM notices n " +
+                         "WHERE (n.audience='All' OR n.audience='Faculty Only') " +
+                         "AND n.id NOT IN (SELECT notice_id FROM notice_reads WHERE user_id=?)")) {
+                ps.setInt(1, faculty.getId());
+                ResultSet rs = ps.executeQuery();
+                int unread = rs.next() ? rs.getInt(1) : 0;
+                noticeCountLabel.setText(String.valueOf(unread));
+                noticeCountLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: "
+                        + (unread > 0 ? "#e67e22" : "#27ae60") + ";");
+            } catch (SQLException e) { e.printStackTrace(); }
+        }
     }
 
     // ── Get courses assigned to this faculty ──────────────────────────────────
@@ -668,19 +688,54 @@ public class FacultyDashboardController implements Initializable {
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  NOTICES VIEW — admin posted notices পড়া
+    //  NOTICES VIEW — read/unread tracking সহ
     // ══════════════════════════════════════════════════════════════════════════
     private VBox buildNoticesView() {
         VBox root = new VBox(16); root.setStyle("-fx-padding: 24;");
 
         Label msgLabel = new Label();
-        VBox  noticeList = new VBox(12);
 
-        Runnable load = () -> {
+        // ── Header row with filter buttons ────────────────────────────────────
+        Button btnAll    = filterTabBtn("All",    true);
+        Button btnUnread = filterTabBtn("Unread", false);
+        Button btnRead   = filterTabBtn("Read",   false);
+        HBox filterRow = new HBox(8,
+                sectionHeader("Notices from Admin"),
+                new Region() {{ HBox.setHgrow(this, Priority.ALWAYS); }},
+                btnAll, btnUnread, btnRead);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
+        root.getChildren().addAll(filterRow, msgLabel);
+
+        VBox noticeList = new VBox(12);
+
+        final String[] currentFilter = {"all"};
+
+        // Runnable[] wrapper allows self-reference inside the lambda
+        final Runnable[] reloadHolder = {null};
+        reloadHolder[0] = () -> {
             noticeList.getChildren().clear();
-            String sql = "SELECT * FROM notices " +
-                         "WHERE audience = 'All' OR audience = 'Faculty Only' " +
-                         "ORDER BY created_at DESC";
+            String filter = currentFilter[0];
+
+            String sql;
+            if ("unread".equals(filter)) {
+                sql = "SELECT *, 0 AS is_read FROM notices " +
+                      "WHERE (audience='All' OR audience='Faculty Only') " +
+                      "AND id NOT IN (SELECT notice_id FROM notice_reads WHERE user_id=" + faculty.getId() + ") " +
+                      "ORDER BY created_at DESC";
+            } else if ("read".equals(filter)) {
+                sql = "SELECT *, 1 AS is_read FROM notices " +
+                      "WHERE (audience='All' OR audience='Faculty Only') " +
+                      "AND id IN (SELECT notice_id FROM notice_reads WHERE user_id=" + faculty.getId() + ") " +
+                      "ORDER BY created_at DESC";
+            } else {
+                sql = "SELECT n.*, " +
+                      "CASE WHEN nr.notice_id IS NOT NULL THEN 1 ELSE 0 END AS is_read " +
+                      "FROM notices n " +
+                      "LEFT JOIN notice_reads nr ON n.id = nr.notice_id AND nr.user_id=" + faculty.getId() + " " +
+                      "WHERE (n.audience='All' OR n.audience='Faculty Only') " +
+                      "ORDER BY is_read ASC, n.created_at DESC";
+            }
+
             try (Connection conn = DatabaseConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql);
                  ResultSet rs = ps.executeQuery()) {
@@ -688,44 +743,83 @@ public class FacultyDashboardController implements Initializable {
                 boolean any = false;
                 while (rs.next()) {
                     any = true;
-                    VBox card = new VBox(8);
-                    card.setStyle("-fx-background-color: white; -fx-background-radius: 12;" +
-                                  "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);" +
-                                  "-fx-padding: 16 18;");
+                    final int    noticeId = rs.getInt("id");
+                    final boolean isRead  = rs.getInt("is_read") == 1;
+                    String audience = rs.getString("audience");
+                    Timestamp ts    = rs.getTimestamp("created_at");
+                    String timeStr  = ts != null ? ts.toLocalDateTime()
+                            .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) : "";
 
-                    // ── Top row: title + audience badge + time ────────────────
-                    HBox top = new HBox(10);
-                    top.setAlignment(Pos.CENTER_LEFT);
+                    // ── Card ──────────────────────────────────────────────────
+                    VBox card = new VBox(8);
+                    String cardBorder = isRead ? "#e0e0e0" : "#2a9d8f";
+                    card.setStyle(
+                            "-fx-background-color: " + (isRead ? "#fafafa" : "white") + ";" +
+                            "-fx-background-radius: 12;" +
+                            "-fx-border-color: " + cardBorder + ";" +
+                            "-fx-border-width: 0 0 0 4;" +
+                            "-fx-border-radius: 0 12 12 0;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);" +
+                            "-fx-padding: 14 18;");
+
+                    // ── Top row ───────────────────────────────────────────────
+                    HBox top = new HBox(10); top.setAlignment(Pos.CENTER_LEFT);
+
+                    if (!isRead) {
+                        Label dot = new Label("●");
+                        dot.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 10px;");
+                        top.getChildren().add(dot);
+                    }
 
                     Label titleLbl = new Label(rs.getString("title"));
-                    titleLbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+                    titleLbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: "
+                            + (isRead ? "#7f8c8d" : "#2c3e50") + ";");
+
+                    String audienceColor = "All".equals(audience) ? "#2a9d8f" : "#9b59b6";
+                    Label audienceLbl = new Label(audience);
+                    audienceLbl.setStyle("-fx-background-color: " + audienceColor + "; -fx-text-fill: white;" +
+                                        "-fx-font-size: 10px; -fx-background-radius: 10; -fx-padding: 2 8;");
+
+                    Label statusBadge = new Label(isRead ? "✓ Read" : "● Unread");
+                    statusBadge.setStyle("-fx-font-size: 10px; -fx-padding: 2 8; -fx-background-radius: 10;" +
+                            "-fx-background-color: " + (isRead ? "#eafaf1" : "#fef9e7") + ";" +
+                            "-fx-text-fill: " + (isRead ? "#27ae60" : "#e67e22") + ";");
 
                     Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                    String audience = rs.getString("audience");
-                    Label audienceLbl = new Label(audience);
-                    audienceLbl.setStyle("-fx-background-color: #3498db; -fx-text-fill: white;" +
-                                         "-fx-font-size: 10px; -fx-background-radius: 10; -fx-padding: 2 8;");
-
-                    Timestamp ts = rs.getTimestamp("created_at");
-                    String timeStr = ts != null ? ts.toLocalDateTime()
-                            .format(java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) : "";
                     Label timeLbl = new Label(timeStr);
                     timeLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #aaa;");
 
-                    top.getChildren().addAll(titleLbl, spacer, audienceLbl, timeLbl);
+                    top.getChildren().addAll(titleLbl, audienceLbl, statusBadge, spacer, timeLbl);
 
-                    // ── Body ──────────────────────────────────────────────────
+                    // ── Body ─────────────────────────────────────────────────
                     Label bodyLbl = new Label(rs.getString("body"));
                     bodyLbl.setWrapText(true);
-                    bodyLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #555; -fx-padding: 4 0 0 0;");
+                    bodyLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (isRead ? "#aaa" : "#555") + "; -fx-padding: 4 0 0 0;");
 
                     card.getChildren().addAll(top, bodyLbl);
+
+                    if (!isRead) {
+                        Button markReadBtn = new Button("Mark as Read");
+                        markReadBtn.setStyle(
+                                "-fx-background-color: transparent; -fx-text-fill: #2a9d8f;" +
+                                "-fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2 0;" +
+                                "-fx-border-color: transparent; -fx-underline: true;");
+                        markReadBtn.setOnAction(ev -> {
+                            markNoticeRead(noticeId, faculty.getId());
+                            loadHomeCards(); // refresh home card count
+                            reloadHolder[0].run();
+                        });
+                        card.getChildren().add(markReadBtn);
+                    }
+
                     noticeList.getChildren().add(card);
                 }
 
                 if (!any) {
-                    Label empty = new Label("📭  No notices at the moment.");
+                    String emptyMsg = "unread".equals(filter) ? "🎉  No unread notices!"
+                                    : "read".equals(filter)   ? "No read notices yet."
+                                    : "📭  No notices at the moment.";
+                    Label empty = new Label(emptyMsg);
                     empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #aaa; -fx-padding: 20 0;");
                     noticeList.getChildren().add(empty);
                 }
@@ -734,19 +828,42 @@ public class FacultyDashboardController implements Initializable {
                 ex.printStackTrace();
                 setMsg(msgLabel, "⚠ Could not load notices.", false);
             }
+
+            setFilterActive(btnAll,    "all".equals(currentFilter[0]));
+            setFilterActive(btnUnread, "unread".equals(currentFilter[0]));
+            setFilterActive(btnRead,   "read".equals(currentFilter[0]));
         };
 
-        load.run();
+        btnAll.setOnAction(ev    -> { currentFilter[0] = "all";    reloadHolder[0].run(); });
+        btnUnread.setOnAction(ev -> { currentFilter[0] = "unread"; reloadHolder[0].run(); });
+        btnRead.setOnAction(ev   -> { currentFilter[0] = "read";   reloadHolder[0].run(); });
 
-        Button refreshBtn = styledBtn("↻  Refresh", "#3498db");
-        refreshBtn.setOnAction(ev -> load.run());
+        reloadHolder[0].run();
 
-        root.getChildren().addAll(
-                sectionHeader("Notices from Admin"),
-                refreshBtn,
-                msgLabel,
-                scrollWrap(noticeList));
+        root.getChildren().add(scrollWrap(noticeList));
         return root;
+    }
+
+    /** Insert into notice_reads if not already there */
+    private void markNoticeRead(int noticeId, int userId) {
+        String sql = "INSERT IGNORE INTO notice_reads (notice_id, user_id, read_at) VALUES (?, ?, NOW())";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, noticeId); ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    private Button filterTabBtn(String text, boolean active) {
+        Button b = new Button(text); setFilterActive(b, active); return b;
+    }
+
+    private void setFilterActive(Button b, boolean active) {
+        b.setStyle(active
+                ? "-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-size: 11px;" +
+                  "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 4 14;"
+                : "-fx-background-color: #f0f0f0; -fx-text-fill: #555; -fx-font-size: 11px;" +
+                  "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 4 14;");
     }
 
     // ══════════════════════════════════════════════════════════════════════════

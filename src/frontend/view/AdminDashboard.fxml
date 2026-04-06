@@ -99,6 +99,12 @@
                                            -fx-font-size: 13px; -fx-alignment: CENTER-LEFT;
                                            -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;" />
 
+                            <Button fx:id="btnPublishResult" text="📊   Publish Result"
+                                    onAction="#showPublishResult" maxWidth="Infinity"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;
+                                           -fx-font-size: 13px; -fx-alignment: CENTER-LEFT;
+                                           -fx-padding: 10 16; -fx-background-radius: 8; -fx-cursor: hand;" />
+
                             <Button fx:id="btnResetCredentials" text="🔑   Reset Credentials"
                                     onAction="#showResetCredentials" maxWidth="Infinity"
                                     style="-fx-background-color: transparent; -fx-text-fill: #cdd9e0;

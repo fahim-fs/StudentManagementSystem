@@ -184,34 +184,106 @@ public class AdminDashboardController implements Initializable {
     // ══════════════════════════════════════════════════════════════════════════
     private VBox buildAddTeacherView() {
         VBox root = new VBox(20); root.setStyle("-fx-padding: 24;");
-        Label msgLabel = new Label(); teacherListContainer = new VBox(8); refreshTeacherList();
-        TextField fNameFld=formField("First Name"), lNameFld=formField("Last Name"), emailFld=formField("Email"), phoneFld=formField("Phone"), usernameFld=formField("Username");
-        ComboBox<String> deptBox = new ComboBox<>(FXCollections.observableArrayList("Computer Science & Engineering","Electrical & Electronic Engineering","Civil Engineering","Mechanical Engineering","Business Administration","Mathematics","Physics","English"));
+        Label msgLabel = new Label();
+        teacherListContainer = new VBox(8);
+        refreshTeacherList();
+
+        // ── Form fields — database এর সব column ──────────────────────────────
+        TextField fNameFld    = formField("First Name");
+        TextField lNameFld    = formField("Last Name");
+        TextField fatherFld   = formField("Father's Name");
+        TextField motherFld   = formField("Mother's Name");
+        DatePicker dobPicker  = new DatePicker();
+        dobPicker.setPromptText("Date of Birth");
+        dobPicker.setStyle("-fx-pref-height:34px; -fx-pref-width:220px; -fx-background-radius:6; -fx-border-radius:6; -fx-border-color:#ccc;");
+        TextField emailFld    = formField("Email");
+        TextField phoneFld    = formField("Phone (+880...)");
+        TextField addressFld  = formField("Address");
+        ToggleGroup genderGroup = new ToggleGroup();
+        RadioButton maleBtn   = new RadioButton("Male");  maleBtn.setToggleGroup(genderGroup);
+        RadioButton femaleBtnn = new RadioButton("Female"); femaleBtnn.setToggleGroup(genderGroup);
+        maleBtn.setStyle("-fx-font-size:13px;"); femaleBtnn.setStyle("-fx-font-size:13px;");
+        TextField sessionFld  = formField("Session (e.g. 2021-22)");
+        TextField usernameFld = formField("Username");
+        ComboBox<String> deptBox = new ComboBox<>(FXCollections.observableArrayList(
+                "Computer Science & Engineering", "Electrical & Electronic Engineering",
+                "Civil Engineering", "Mechanical Engineering", "Business Administration",
+                "Mathematics", "Physics", "English"));
         deptBox.setPromptText("Select Department"); styleCombo(deptBox);
-        PasswordField passFld=new PasswordField(); passFld.setPromptText("Password");
-        PasswordField confirmFld=new PasswordField(); confirmFld.setPromptText("Confirm Password");
+        PasswordField passFld    = new PasswordField(); passFld.setPromptText("Password (min 6 chars)");
+        PasswordField confirmFld = new PasswordField(); confirmFld.setPromptText("Confirm Password");
         styleField(passFld); styleField(confirmFld);
-        Button addBtn = styledBtn("Add Teacher","#2a9d8f"); addBtn.setStyle(addBtn.getStyle()+"-fx-padding:10 24; -fx-font-size:13px;");
+
+        Button addBtn = styledBtn("Add Teacher", "#2a9d8f");
+        addBtn.setStyle(addBtn.getStyle() + "-fx-padding:10 24; -fx-font-size:13px;");
         addBtn.setOnAction(ev -> {
-            if (fNameFld.getText().isBlank()||lNameFld.getText().isBlank()) { setMsg(msgLabel,"⚠ Names required.",false); return; }
-            if (usernameFld.getText().length()<4) { setMsg(msgLabel,"⚠ Username min 4 chars.",false); return; }
-            if (emailFld.getText().isBlank()) { setMsg(msgLabel,"⚠ Email required.",false); return; }
-            if (deptBox.getValue()==null) { setMsg(msgLabel,"⚠ Select department.",false); return; }
-            if (passFld.getText().length()<6) { setMsg(msgLabel,"⚠ Password min 6 chars.",false); return; }
-            if (!passFld.getText().equals(confirmFld.getText())) { setMsg(msgLabel,"⚠ Passwords don't match.",false); return; }
-            if (insertTeacher(fNameFld.getText().trim(),lNameFld.getText().trim(),emailFld.getText().trim(),phoneFld.getText().trim(),deptBox.getValue(),usernameFld.getText().trim(),passFld.getText())) {
-                setMsg(msgLabel,"✔ Teacher added!",true);
-                fNameFld.clear(); lNameFld.clear(); emailFld.clear(); phoneFld.clear(); usernameFld.clear(); passFld.clear(); confirmFld.clear(); deptBox.setValue(null); refreshTeacherList();
-            } else { setMsg(msgLabel,"⚠ Failed — username or email may exist.",false); }
+            if (fNameFld.getText().isBlank() || lNameFld.getText().isBlank())
+                { setMsg(msgLabel, "⚠ First and Last name required.", false); return; }
+            if (usernameFld.getText().length() < 4)
+                { setMsg(msgLabel, "⚠ Username min 4 chars.", false); return; }
+            if (emailFld.getText().isBlank())
+                { setMsg(msgLabel, "⚠ Email required.", false); return; }
+            if (deptBox.getValue() == null)
+                { setMsg(msgLabel, "⚠ Select department.", false); return; }
+            if (passFld.getText().length() < 6)
+                { setMsg(msgLabel, "⚠ Password min 6 chars.", false); return; }
+            if (!passFld.getText().equals(confirmFld.getText()))
+                { setMsg(msgLabel, "⚠ Passwords don't match.", false); return; }
+            String gender = maleBtn.isSelected() ? "Male" : femaleBtnn.isSelected() ? "Female" : null;
+            java.time.LocalDate dob = dobPicker.getValue();
+            if (insertTeacher(
+                    fNameFld.getText().trim(), lNameFld.getText().trim(),
+                    fatherFld.getText().trim(), motherFld.getText().trim(),
+                    dob, emailFld.getText().trim(), phoneFld.getText().trim(),
+                    addressFld.getText().trim(), gender, sessionFld.getText().trim(),
+                    deptBox.getValue(), usernameFld.getText().trim(), passFld.getText())) {
+                setMsg(msgLabel, "✔ Teacher added successfully!", true);
+                fNameFld.clear(); lNameFld.clear(); fatherFld.clear(); motherFld.clear();
+                dobPicker.setValue(null); emailFld.clear(); phoneFld.clear();
+                addressFld.clear(); genderGroup.selectToggle(null); sessionFld.clear();
+                usernameFld.clear(); passFld.clear(); confirmFld.clear(); deptBox.setValue(null);
+                refreshTeacherList();
+            } else {
+                setMsg(msgLabel, "⚠ Failed — username or email may already exist.", false);
+            }
         });
-        VBox form=new VBox(12); form.setStyle("-fx-background-color:white; -fx-background-radius:12; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),10,0,0,2); -fx-padding:24; -fx-pref-width:480;");
-        form.getChildren().addAll(buildSectionHeader("Register New Teacher"), new HBox(12,labeledField("First Name *",fNameFld),labeledField("Last Name *",lNameFld)),
-                labeledField("Username *",usernameFld), labeledField("Email *",emailFld), labeledField("Phone",phoneFld),
-                labeledField("Department *",deptBox), labeledField("Password *",passFld), labeledField("Confirm *",confirmFld), addBtn, msgLabel);
-        VBox listPanel=new VBox(10); listPanel.setStyle("-fx-background-color:white; -fx-background-radius:12; -fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),10,0,0,2); -fx-padding:20;");
-        HBox.setHgrow(listPanel,Priority.ALWAYS);
-        listPanel.getChildren().addAll(buildSectionHeader("Current Teachers"), scrollWrap(teacherListContainer));
-        root.getChildren().add(new HBox(20,form,listPanel));
+
+        // ── Form card — vertical layout ───────────────────────────────────────
+        VBox form = new VBox(12);
+        form.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                      "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),10,0,0,2); -fx-padding:24;");
+        form.setMaxWidth(560);
+
+        HBox genderRow = new HBox(16, maleBtn, femaleBtnn);
+        genderRow.setAlignment(Pos.CENTER_LEFT);
+
+        form.getChildren().addAll(
+                buildSectionHeader("Register New Teacher"),
+                new HBox(12, labeledField("First Name *",  fNameFld),
+                              labeledField("Last Name *",   lNameFld)),
+                new HBox(12, labeledField("Father's Name", fatherFld),
+                              labeledField("Mother's Name", motherFld)),
+                labeledField("Date of Birth", dobPicker),
+                new HBox(12, labeledField("Email *",       emailFld),
+                              labeledField("Phone",        phoneFld)),
+                labeledField("Address",       addressFld),
+                //labeledField("Gender", genderRow),
+                new HBox(12, labeledField("Session",       sessionFld),
+                              labeledField("Department *", deptBox)),
+                labeledField("Username *",    usernameFld),
+                labeledField("Password *",    passFld),
+                labeledField("Confirm *",     confirmFld),
+                addBtn, msgLabel);
+
+        // ── Teacher list — below form ─────────────────────────────────────────
+        VBox listPanel = new VBox(10);
+        listPanel.setStyle("-fx-background-color:white; -fx-background-radius:12;" +
+                           "-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.08),10,0,0,2); -fx-padding:20;");
+        listPanel.getChildren().addAll(
+                buildSectionHeader("Current Teachers"),
+                scrollWrap(teacherListContainer));
+
+        root.getChildren().addAll(form, listPanel);
         return root;
     }
 
@@ -992,9 +1064,29 @@ public class AdminDashboardController implements Initializable {
     private void deleteCourse(int id)   { exec("DELETE FROM courses WHERE id=?",id); }
     private void unassignCourse(int id) { exec("UPDATE courses SET faculty_id=NULL,faculty=NULL WHERE id=?",id); }
     private void deleteNotice(int id)   { exec("DELETE FROM notices WHERE id=?",id); }
-    private boolean insertTeacher(String fn,String ln,String email,String phone,String dept,String username,String pw) {
-        try (Connection conn=DatabaseConnection.getConnection(); PreparedStatement ps=conn.prepareStatement("INSERT INTO users (first_name,last_name,email,phone,department,username,password,role,status) VALUES (?,?,?,?,?,?,?,'FACULTY','APPROVED')")) {
-            ps.setString(1,fn);ps.setString(2,ln);ps.setString(3,email);ps.setString(4,phone);ps.setString(5,dept);ps.setString(6,username);ps.setString(7,PasswordUtil.hashPassword(pw)); return ps.executeUpdate()>0;
+    private boolean insertTeacher(String fn, String ln, String fatherName, String motherName,
+                                   java.time.LocalDate dob, String email, String phone,
+                                   String address, String gender, String session,
+                                   String dept, String username, String pw) {
+        String sql = "INSERT INTO users (first_name, last_name, father_name, mother_name, " +
+                     "date_of_birth, email, phone, address, gender, session, department, " +
+                     "username, password, role, status) " +
+                     "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'FACULTY','APPROVED')";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fn); ps.setString(2, ln);
+            ps.setString(3, fatherName.isEmpty() ? null : fatherName);
+            ps.setString(4, motherName.isEmpty() ? null : motherName);
+            ps.setDate(5, dob != null ? java.sql.Date.valueOf(dob) : null);
+            ps.setString(6, email);
+            ps.setString(7, phone.isEmpty() ? null : phone);
+            ps.setString(8, address.isEmpty() ? null : address);
+            ps.setString(9, gender);
+            ps.setString(10, session.isEmpty() ? null : session);
+            ps.setString(11, dept);
+            ps.setString(12, username);
+            ps.setString(13, PasswordUtil.hashPassword(pw));
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) { e.printStackTrace(); return false; }
     }
     private boolean insertCourse(String c,String n,double cr,int l,int t) {

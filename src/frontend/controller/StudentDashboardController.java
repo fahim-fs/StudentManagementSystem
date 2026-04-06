@@ -104,12 +104,18 @@ public class StudentDashboardController implements Initializable {
         overallAttendanceLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: "
                 + (overall >= 75 ? "#27ae60" : "#e74c3c") + ";");
 
-        // ── FIX: notice count — only All + Students Only ──────────────────────
+        // ── Unread notice count — notices not yet read by this student ──────────
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT COUNT(*) FROM notices WHERE audience='All' OR audience='Students Only'");
-             ResultSet rs = ps.executeQuery()) {
-            noticeCountLabel.setText(rs.next() ? String.valueOf(rs.getInt(1)) : "0");
+                     "SELECT COUNT(*) FROM notices n " +
+                     "WHERE (n.audience='All' OR n.audience='Students Only') " +
+                     "AND n.id NOT IN (SELECT notice_id FROM notice_reads WHERE user_id=?)")) {
+            ps.setInt(1, student.getId());
+            ResultSet rs = ps.executeQuery();
+            int unread = rs.next() ? rs.getInt(1) : 0;
+            noticeCountLabel.setText(String.valueOf(unread));
+            noticeCountLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: "
+                    + (unread > 0 ? "#e67e22" : "#27ae60") + ";");
         } catch (Exception e) { noticeCountLabel.setText("0"); }
 
         CourseRegistrationDAO crDao = new CourseRegistrationDAO();
@@ -211,62 +217,203 @@ public class StudentDashboardController implements Initializable {
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  NOTICES VIEW — student শুধু 'All' এবং 'Students Only' দেখবে
+    //  NOTICES VIEW — read/unread tracking সহ
     // ══════════════════════════════════════════════════════════════════════════
     private VBox buildNoticesView() {
         VBox root = new VBox(16); root.setStyle("-fx-padding: 24;");
-        root.getChildren().add(sectionHeader("📢  Notices"));
+
+        // header row: title + filter buttons
+        Button btnAll    = filterTabBtn("All",    true);
+        Button btnUnread = filterTabBtn("Unread", false);
+        Button btnRead   = filterTabBtn("Read",   false);
+        HBox filterRow = new HBox(8, sectionHeader("📢  Notices"),
+                new Region() {{ HBox.setHgrow(this, Priority.ALWAYS); }},
+                btnAll, btnUnread, btnRead);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
+        root.getChildren().add(filterRow);
 
         VBox noticeList = new VBox(12);
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "SELECT * FROM notices WHERE audience='All' OR audience='Students Only' ORDER BY created_at DESC");
-             ResultSet rs = ps.executeQuery()) {
-
-            boolean any = false;
-            while (rs.next()) {
-                any = true;
-                String audience = rs.getString("audience");
-                String badgeColor = "All".equals(audience) ? "#2a9d8f" : "#3498db";
-
-                VBox card = new VBox(8);
-                card.setStyle("-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 10;" +
-                              "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.07), 8, 0, 0, 2);" +
-                              "-fx-border-color: #e8e8e8; -fx-border-radius: 10;");
-
-                HBox top = new HBox(10); top.setAlignment(Pos.CENTER_LEFT);
-                Label title = new Label(rs.getString("title"));
-                title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-                Label badge = new Label(audience);
-                badge.setStyle("-fx-background-color: " + badgeColor + "; -fx-text-fill: white;" +
-                               "-fx-font-size: 10px; -fx-padding: 2 8; -fx-background-radius: 10;");
-                Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-                String dateStr = rs.getString("created_at");
-                Label date = new Label(dateStr != null ? dateStr.substring(0, 16) : "");
-                date.setStyle("-fx-font-size: 10px; -fx-text-fill: #aaa;");
-                top.getChildren().addAll(title, badge, sp, date);
-
-                Label body = new Label(rs.getString("body"));
-                body.setStyle("-fx-font-size: 13px; -fx-text-fill: #555;");
-                body.setWrapText(true);
-
-                card.getChildren().addAll(top, body);
-                noticeList.getChildren().add(card);
-            }
-
-            if (!any) {
-                Label empty = new Label("No notices at the moment.");
-                empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #aaa; -fx-padding: 20 0;");
-                noticeList.getChildren().add(empty);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-
         ScrollPane sp = new ScrollPane(noticeList);
         sp.setFitToWidth(true);
         sp.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         VBox.setVgrow(sp, Priority.ALWAYS);
         root.getChildren().add(sp);
+
+        // filter: "all" | "unread" | "read"
+        final String[] currentFilter = {"all"};
+
+        // Runnable[] wrapper allows self-reference inside the lambda
+        final Runnable[] reloadHolder = {null};
+        reloadHolder[0] = () -> {
+            noticeList.getChildren().clear();
+            String filter = currentFilter[0];
+
+            String sql;
+            if ("unread".equals(filter)) {
+                sql = "SELECT *, 0 AS is_read FROM notices " +
+                      "WHERE (audience='All' OR audience='Students Only') " +
+                      "AND id NOT IN (SELECT notice_id FROM notice_reads WHERE user_id=" + student.getId() + ") " +
+                      "ORDER BY created_at DESC";
+            } else if ("read".equals(filter)) {
+                sql = "SELECT *, 1 AS is_read FROM notices " +
+                      "WHERE (audience='All' OR audience='Students Only') " +
+                      "AND id IN (SELECT notice_id FROM notice_reads WHERE user_id=" + student.getId() + ") " +
+                      "ORDER BY created_at DESC";
+            } else {
+                // all — is_read computed via LEFT JOIN
+                sql = "SELECT n.*, " +
+                      "CASE WHEN nr.notice_id IS NOT NULL THEN 1 ELSE 0 END AS is_read " +
+                      "FROM notices n " +
+                      "LEFT JOIN notice_reads nr ON n.id = nr.notice_id AND nr.user_id=" + student.getId() + " " +
+                      "WHERE (n.audience='All' OR n.audience='Students Only') " +
+                      "ORDER BY is_read ASC, n.created_at DESC";
+            }
+
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement ps2 = conn.prepareStatement(sql);
+                 ResultSet rs = ps2.executeQuery()) {
+
+                boolean any = false;
+                while (rs.next()) {
+                    any = true;
+                    final int    noticeId = rs.getInt("id");
+                    final boolean isRead  = rs.getInt("is_read") == 1;
+                    String audience       = rs.getString("audience");
+                    String dateStr        = rs.getString("created_at");
+
+                    // ── Card ──────────────────────────────────────────────────
+                    VBox card = new VBox(10);
+                    String cardBg = isRead ? "#fafafa" : "white";
+                    String cardBorder = isRead ? "#e0e0e0" : "#2a9d8f";
+                    card.setStyle(
+                            "-fx-background-color: " + cardBg + ";" +
+                            "-fx-background-radius: 10;" +
+                            "-fx-border-color: " + cardBorder + ";" +
+                            "-fx-border-width: 0 0 0 4;" +   // left accent border
+                            "-fx-border-radius: 0 10 10 0;" +
+                            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);" +
+                            "-fx-padding: 14 16;");
+
+                    // ── Top row ───────────────────────────────────────────────
+                    HBox top = new HBox(8); top.setAlignment(Pos.CENTER_LEFT);
+
+                    // unread dot
+                    if (!isRead) {
+                        Label dot = new Label("●");
+                        dot.setStyle("-fx-text-fill: #e67e22; -fx-font-size: 10px;");
+                        top.getChildren().add(dot);
+                    }
+
+                    Label titleLbl = new Label(rs.getString("title"));
+                    titleLbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: "
+                            + (isRead ? "#7f8c8d" : "#2c3e50") + ";");
+
+                    String audienceBadgeColor = "All".equals(audience) ? "#2a9d8f" : "#3498db";
+                    Label audienceLbl = new Label(audience);
+                    audienceLbl.setStyle("-fx-background-color: " + audienceBadgeColor + "; -fx-text-fill: white;" +
+                                        "-fx-font-size: 10px; -fx-padding: 2 8; -fx-background-radius: 10;");
+
+                    // read/unread status badge
+                    Label statusBadge = new Label(isRead ? "✓ Read" : "● Unread");
+                    statusBadge.setStyle("-fx-font-size: 10px; -fx-padding: 2 8; -fx-background-radius: 10;" +
+                            "-fx-background-color: " + (isRead ? "#eafaf1" : "#fef9e7") + ";" +
+                            "-fx-text-fill: " + (isRead ? "#27ae60" : "#e67e22") + ";");
+
+                    Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+                    Label dateLbl = new Label(dateStr != null && dateStr.length() >= 16 ? dateStr.substring(0, 16) : "");
+                    dateLbl.setStyle("-fx-font-size: 10px; -fx-text-fill: #aaa;");
+
+                    top.getChildren().addAll(titleLbl, audienceLbl, statusBadge, spacer, dateLbl);
+
+                    // ── Body ─────────────────────────────────────────────────
+                    Label bodyLbl = new Label(rs.getString("body"));
+                    bodyLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (isRead ? "#aaa" : "#555") + ";");
+                    bodyLbl.setWrapText(true);
+
+                    // ── Mark as Read button (only for unread) ─────────────────
+                    card.getChildren().addAll(top, bodyLbl);
+
+                    if (!isRead) {
+                        Button markReadBtn = new Button("Mark as Read");
+                        markReadBtn.setStyle(
+                                "-fx-background-color: transparent; -fx-text-fill: #2a9d8f;" +
+                                "-fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2 0;" +
+                                "-fx-border-color: transparent; -fx-underline: true;");
+                        markReadBtn.setOnAction(ev -> {
+                            markNoticeRead(noticeId, student.getId());
+                            // update home card count and reload notice list
+                            updateNoticeCardCount();
+                            reloadHolder[0].run();
+                        });
+                        card.getChildren().add(markReadBtn);
+                    }
+
+                    noticeList.getChildren().add(card);
+                }
+
+                if (!any) {
+                    String msg = "unread".equals(filter) ? "🎉  No unread notices!"
+                               : "read".equals(filter)   ? "No read notices yet."
+                               : "No notices at the moment.";
+                    Label empty = new Label(msg);
+                    empty.setStyle("-fx-font-size: 13px; -fx-text-fill: #aaa; -fx-padding: 20 0;");
+                    noticeList.getChildren().add(empty);
+                }
+
+            } catch (SQLException ex) { ex.printStackTrace(); }
+
+            // update filter button styles
+            setFilterActive(btnAll,    "all".equals(currentFilter[0]));
+            setFilterActive(btnUnread, "unread".equals(currentFilter[0]));
+            setFilterActive(btnRead,   "read".equals(currentFilter[0]));
+        };
+
+        btnAll.setOnAction(ev    -> { currentFilter[0] = "all";    reloadHolder[0].run(); });
+        btnUnread.setOnAction(ev -> { currentFilter[0] = "unread"; reloadHolder[0].run(); });
+        btnRead.setOnAction(ev   -> { currentFilter[0] = "read";   reloadHolder[0].run(); });
+
+        reloadHolder[0].run();
         return root;
+    }
+
+    /** Insert into notice_reads if not already there */
+    private void markNoticeRead(int noticeId, int userId) {
+        String sql = "INSERT IGNORE INTO notice_reads (notice_id, user_id, read_at) VALUES (?, ?, NOW())";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, noticeId); ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    /** Refresh the home-page unread notice count label without full page reload */
+    private void updateNoticeCardCount() {
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "SELECT COUNT(*) FROM notices n " +
+                     "WHERE (n.audience='All' OR n.audience='Students Only') " +
+                     "AND n.id NOT IN (SELECT notice_id FROM notice_reads WHERE user_id=?)")) {
+            ps.setInt(1, student.getId());
+            ResultSet rs = ps.executeQuery();
+            int unread = rs.next() ? rs.getInt(1) : 0;
+            noticeCountLabel.setText(String.valueOf(unread));
+            noticeCountLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: "
+                    + (unread > 0 ? "#e67e22" : "#27ae60") + ";");
+        } catch (SQLException e) { e.printStackTrace(); }
+    }
+
+    private Button filterTabBtn(String text, boolean active) {
+        Button b = new Button(text);
+        setFilterActive(b, active);
+        return b;
+    }
+
+    private void setFilterActive(Button b, boolean active) {
+        b.setStyle(active
+                ? "-fx-background-color: #2a9d8f; -fx-text-fill: white; -fx-font-size: 11px;" +
+                  "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 4 14;"
+                : "-fx-background-color: #f0f0f0; -fx-text-fill: #555; -fx-font-size: 11px;" +
+                  "-fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 4 14;");
     }
 
     // ══════════════════════════════════════════════════════════════════════════
