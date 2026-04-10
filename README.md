@@ -560,13 +560,6 @@ primaryStage.setResizable(false); // Set to true for resizable window
 
 ---
 
-## 👨‍💻 Authors
-
-**Auritro**
-- GitHub: [@yourusername](https://github.com/yourusername)
-
----
-
 ## 🙏 Acknowledgments
 
 - JavaFX community for excellent documentation
